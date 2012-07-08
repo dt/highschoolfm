@@ -1,0 +1,3 @@
+[submodule "public/javascripts/rdio"]
+	path = public/javascripts/rdio
+	url = https://github.com/rdio/jquery.rdio.js.git

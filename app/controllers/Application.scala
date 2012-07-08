@@ -33,7 +33,7 @@ object Application extends Controller {
         case Left(e) => throw e
       }
     }.getOrElse(
-      RdioOAuth.retrieveRequestToken("http://" + request.domain + ":9000/auth") match {
+      RdioOAuth.retrieveRequestToken("http://"+ request.host + request.uri) match {
         case Right(t) => {
           // We received the unauthorized tokens in the OAuth object - store it before we proceed
           Redirect(RdioOAuth.redirectUrl(t.token)).withSession("token" -> t.token, "secret" -> t.secret)

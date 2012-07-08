@@ -19,8 +19,7 @@ object Playlist extends Controller {
 
   def forYear(year: Int) = Action { request => Async {
     val host = if (request.domain.endsWith("highschool.fm")) request.domain else "highschool.fm"
-    Logger.info("req for "+request.domain + " [" + host + "]")
-    Rdio.playbackToken("local.highschool.fm").map{ _.map{ token =>
+    Rdio.playbackToken(host).map{ _.map{ token =>
       val tracks = Top100.forYears(year-3 to year).toSeq.flatMap(Top100.tracks(_)).sortBy(shuffler(year))
       if (tracks.isEmpty)
         NotFound("Sorry, we don't have charts for " + year)
