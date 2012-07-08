@@ -9,10 +9,21 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
       // Add your project dependencies here,
+      "se.radley" %% "play-plugins-salat" % "1.0.7"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-      // Add your own project settings here      
+      routesImport += "se.radley.plugin.salat.Binders._",
+      templatesImport += "org.bson.types.ObjectId",
+      scalacOptions ++= Seq(
+        "-encoding",
+        "UTF-8",
+        "-Xlint",
+        "-deprecation",
+        "-unchecked",
+        "-Xfatal-warnings",
+        "-Ywarn-value-discard",
+        "-Ywarn-all")
     )
 
 }

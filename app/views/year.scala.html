@@ -1,0 +1,90 @@
+@(year: String, playlist: Seq[RankedTrack], token: String)
+
+@main("highschool.fm") {
+  <h1>@year</h1>
+  <div id="api"></div>
+  <img id="art" src="" height="200" width="200" style="float:left;margin-right:20px;">
+  <div>
+    <div><b>Track: </b><span id="track"></span></div>
+    <div><b>Album: </b><span id="album"></span></div>
+    <div><b>Artist: </b><span id="artist"></span></div>
+    <div><b>Position: </b>
+      <span style="display:inline-block;width:200px;border:1px solid black;">
+        <span id="position" style="display:inline-block;background-color:#666">&nbsp;</span>
+      </span></div>
+    <div>
+      <button id="play">|&gt;</button>
+      <button id="pause">||</button>
+      <button id="next">&gt;&gt;</button>
+    </div>
+  </div>
+
+  <div style="clear:both"></div>
+  <ol id="playlist">
+  @playlist.map { item =>
+  <li
+    @{item.track.rdio.filter(_.streamable)
+      .map(rd => "class=stream rdiokey="+rd.key)
+      .getOrElse("class=nostream")}>
+      <span class="rank">@item.rank</span>
+      <span class="year">@item.year</span>
+      <span class="artist">@item.track.artist</span> -
+      <span class="title">@item.track.title</span>
+    </li>
+  }
+  </ol>
+
+  <script type="text/javascript">
+    var duration = 1; // track the duration of the currently playing track
+    var localQueue = [];
+    var playing = false;
+    $(document).ready(function() {
+      $('#api').bind('ready.rdio', function() {
+        var self = this;
+
+        $('#playlist .stream').each(function() {
+          var trackKey = $(this).attr('rdiokey');
+          localQueue.push(trackKey);
+        });
+        var first = localQueue.shift();
+        $(this).rdio().play(first);
+      });
+      $('#api').bind('playingTrackChanged.rdio', function(e, playingTrack, sourcePosition) {
+        if (playingTrack) {
+          playing = true;
+          duration = playingTrack.duration;
+          $('#art').attr('src', playingTrack.icon);
+          $('#track').text(playingTrack.name);
+          $('#album').text(playingTrack.album);
+          $('#artist').text(playingTrack.artist);
+        }
+        });
+
+      $('#api').bind('positionChanged.rdio', function(e, position) {
+        $('#position').css('width', Math.floor(100*position/duration)+'%');
+      });
+      $('#api').bind('playStateChanged.rdio', function(e, playState) {
+        console.log("state " + playState)
+        if (playState == 2) {
+          playing = false;
+          if (playing)
+            $('#api').rdio().play(localQueue.shift());
+        } else if (playState == 0) { // paused
+          $('#play').show();
+          $('#pause').hide();
+        } else {
+          $('#play').hide();
+          $('#pause').show();
+        }
+      });
+      // this is a valid playback token for localhost.
+      // but you should go get your own for your own domain.
+      $('#api').rdio('@token');
+
+      $('#play').click(function() { $('#api').rdio().play(); });
+      $('#pause').click(function() { $('#api').rdio().pause(); });
+      $('#next').click(function() { $('#api').rdio().play(localQueue.shift()); });
+    });
+  </script>
+
+}

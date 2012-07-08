@@ -1,0 +1,4 @@
+import play.core.StaticApplication
+new StaticApplication(new java.io.File("."))
+import models._
+import libs._
