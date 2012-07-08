@@ -66,9 +66,13 @@
       $('#api').bind('playStateChanged.rdio', function(e, playState) {
         console.log("state " + playState)
         if (playState == 2) {
-          playing = false;
-          if (playing)
+          if (playing) {
+            playing = false;
             $('#api').rdio().play(localQueue.shift());
+          } else {
+            playing = false;
+          }
+
         } else if (playState == 0) { // paused
           $('#play').show();
           $('#pause').hide();
