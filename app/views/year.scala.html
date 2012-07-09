@@ -4,32 +4,31 @@
   <script type="text/javascript">
     var playbackToken = '@token';
   </script>
-  <div>
-    <button id="play">|&gt;</button>
-    <button id="pause">||</button>
-    <button id="next">&gt;&gt;</button>
-  </div>
-
   <div id="artBox">
     <img id="art" src="" height="100" width="100">
+    <div id="play"><img src="@routes.Assets.at("images/play.png")" height="100" width="100" /></div>
+    <div id="pause"><img src="@routes.Assets.at("images/pause.png")" height="100" width="100" /></div>
   </div>
   <ol id="queue">
   @playlist.map { item =>
   <li
     @{item.track.rdio.filter(_.streamable)
-      .map(rd => "class=stream id="+rd.key)
+      .map(rd => "class=enqueued id="+rd.key)
       .getOrElse("class=nostream")}>
       <div class="chartpos">
         <rank>@item.rank</rank>
         <year>@item.year</year>
       </div>
       <div class="track">
-        <title>@item.track.title</title>
-        <artist>@item.track.artist</artist>
+        <span class="title">@item.track.title</span>
+        <img src="@routes.Assets.at("images/skip.png")" class="skip" />
+        <span class="artist">@item.track.artist</span>
       </div>
       <div class="clearfix"></div>
     </li>
   }
   </ol>
   <div id="api"></div>
+}{
+  <script src="@routes.Assets.at("javascripts/player.js")" type="text/javascript"></script>
 }

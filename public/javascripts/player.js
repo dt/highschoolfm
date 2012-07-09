@@ -1,61 +1,55 @@
-var localQueue = [];
-var playing = false;
-var currentlyPlaying = false;
-var skipping = false;
 var loader = new Image();
+
+var ignoreStopped = false;
+var currentTrack = "";
+
+function skipTo(id) {
+  ignoreStopped = true;
+  $('#api').rdio().play(id);
+}
+
+function playNext() {
+  var next = $('#queue .enqueued').first().attr('id');
+  $('#api').rdio().play(next);
+}
+
+function nowPlaying(id, art, artist, title) {
+  loader.src = art;
+  var  started = $('#' + id).addClass("playing").removeClass('enqueued');
+  started.prevAll().slideUp( function() { $(this).remove(); });
+  started.find('title').text(title);
+  started.find('artist').text(artist);
+  $('#art').fadeOut(500, function() { $('#art').attr('src', art).delay(200).fadeIn(500);});
+}
+
 $(document).ready(function() {
   $('#api').bind('ready.rdio', function() {
-    var self = this;
-
-    $('#queue .stream').each(function() {
-      var trackKey = $(this).attr('id');
-      $(this).addClass("enqueued");
-      localQueue.push(trackKey);
+    $('#queue .enqueued').each(function() {
+      $(this).click(function() { skipTo($(this).attr('id')); });
     });
-    var first = localQueue.shift();
-    $(this).rdio().play(first);
+    playNext();
   });
+
   $('#api').bind('playingTrackChanged.rdio', function(e, playingTrack, sourcePosition) {
-    if (playingTrack && currentlyPlaying != playingTrack.key) {
-      currentlyPlaying = playingTrack.key;
-      console.log("playing " + playingTrack.key);
-
-      playing = true;
-      loader.src = playingTrack.icon;
-      var nowPlaying = $('#' + playingTrack.key).addClass("playing");
-      nowPlaying.prevAll().slideUp().remove();
-      nowPlaying.find('title').text(playingTrack.name);
-      nowPlaying.find('artist').text(playingTrack.artist);
-      $('#art').fadeOut(500, function() {
-        $('#art').attr('src', playingTrack.icon).delay(200).fadeIn(500);
-      });
-
+    if (playingTrack) {
+      nowPlaying(playingTrack.key, playingTrack.icon, playingTrack.artist, playingTrack.name);
     }
-    });
+  });
 
   $('#api').bind('playStateChanged.rdio', function(e, playState) {
-    console.log("state " + playState)
-    if (playState == 2) {
-      var wasPlaying = $('li.playing');
+    if (playState == 2 && currentTrack) {
+      var wasPlaying = $('#' + currentTrack);
       wasPlaying.prevAll().slideUp(function() {$(this).remove();});
-      wasPlaying.removeClass("playing").slideUp(function() {$(this).remove();});
-
-      if (skipping) {
-          skipping = false;
+      wasPlaying.slideUp(function() {$(this).remove();});
+      if (ignoreStopped) {
       } else {
-        if (playing) {
-          playing = false;
-          $('#api').rdio().play(localQueue.shift());
-        } else {
-          playing = false;
-        }
+        playNext();
       }
+      ignoreStopped = false;
     } else if (playState == 0) { // paused
-      $('#play').show();
-      $('#pause').hide();
+      $('#artBox').attr('class', 'paused');
     } else {
-      $('#play').hide();
-      $('#pause').show();
+      $('#artBox').attr('class', 'playing');
     }
   });
 
@@ -64,8 +58,4 @@ $(document).ready(function() {
   $('#api').rdio(playbackToken);
   $('#play').click(function() { $('#api').rdio().play(); });
   $('#pause').click(function() { $('#api').rdio().pause(); });
-  $('#next').click(function() {
-    skipping = true;
-    $('#api').rdio().play(localQueue.shift());
-  });
 });

@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(postjs: Html)
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -22,7 +22,7 @@
 
   <body>
     <div id="backdrop" class="container">
-      <div id="header"><h1>@title</h1></div>
+      <div id="header"><a href="/"><h1>@title</h1></a></div>
       <div id="content">
           @content
       </div>
@@ -32,6 +32,6 @@
     </div> <!-- /container -->
     <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     <script src="@routes.Assets.at("javascripts/rdio/jquery.rdio.js")" type="text/javascript"></script>
-    <script src="@routes.Assets.at("javascripts/player.js")" type="text/javascript"></script>
+    @postjs
   </body>
 </html>

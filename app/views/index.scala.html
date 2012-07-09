@@ -1,5 +1,24 @@
-@(message: String)
+@()
 
-@main("highschool.fm") {
-  <h1>@message</h1>
+@main("highschool.fm"){
+<div id="homepage">
+  <h2>What year did you graduate highschool?</h2>
+  <br />
+  <form id="yearForm">
+    <input type="text" name="year" id="year" max-size="4"/>
+    <button id="go">GO</button>
+  </form>
+</div>
+}{
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#yearForm').submit(function() {
+      var year = $("#year").val();
+      window.location.href = "/" + year;
+      return false;
+    });
+    $("#year").val("");
+    $("#year").focus();
+  });
+</script>
 }
