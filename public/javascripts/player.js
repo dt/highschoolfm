@@ -19,7 +19,10 @@ function nowPlaying(id, art, artist, title) {
   started.prevAll().slideUp( function() { $(this).remove(); });
   started.find('title').text(title);
   started.find('artist').text(artist);
-  $('#art').fadeOut(500, function() { $('#art').attr('src', art).delay(200).fadeIn(500);});
+  $('#artBox').fadeOut(500, function() {
+    $('#art').attr('src', art)
+    $(this).delay(200).fadeIn(500);
+  });
 }
 
 $(document).ready(function() {
