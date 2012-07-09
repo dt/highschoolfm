@@ -1,7 +1,7 @@
 var loader = new Image();
 
 var ignoreStopped = false;
-var currentTrack = "";
+var currentTrack = false;
 
 function skipTo(id) {
   ignoreStopped = true;
@@ -31,20 +31,19 @@ $(document).ready(function() {
   });
 
   $('#api').bind('playingTrackChanged.rdio', function(e, playingTrack, sourcePosition) {
-    if (playingTrack) {
+    if (playingTrack && (currentTrack != playingTrack.key)) {
+      currentTrack = playingTrack.key;
       nowPlaying(playingTrack.key, playingTrack.icon, playingTrack.artist, playingTrack.name);
     }
   });
 
   $('#api').bind('playStateChanged.rdio', function(e, playState) {
     if (playState == 2 && currentTrack) {
-      var wasPlaying = $('#' + currentTrack);
-      wasPlaying.prevAll().slideUp(function() {$(this).remove();});
-      wasPlaying.slideUp(function() {$(this).remove();});
       if (ignoreStopped) {
       } else {
         playNext();
       }
+      currentTrack = false;
       ignoreStopped = false;
     } else if (playState == 0) { // paused
       $('#artBox').attr('class', 'paused');
