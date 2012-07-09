@@ -1,3 +1,101 @@
-#playlist li.nostream {
-  opacity: 0.5;
+body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+#header h1 {
+  margin-top: 40px;
+  font-size: 2.5em;
+  text-align: center;
+}
+
+#backdrop {
+  background: url('/assets/images/radio.jpg') no-repeat;
+  height: 520px;
+  width: 1024px;
+}
+
+#content {
+  padding: 10px;
+  margin: 10px;
+  min-height: 520px;
+}
+
+.clearfix {
+  clear: both;
+}
+#artBox {
+  width: 100px;
+  height: 110px;
+  float:left;
+}
+#queue {
+  overflow: hidden;
+  margin-left: 120px;
+
+  li.nostream {
+    opacity: 0.15;
+  }
+
+  li.stream {
+    opacity: 0.2;
+    &:nth-child(1) {
+      line-height: 30px;
+      title {
+        font-size: 1.5em;
+      }
+      font-size: 2em;
+      opacity: 1;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.6);
+    }
+    &:nth-child(2) { opacity: 0.95; }
+    &:nth-child(3) { opacity: 0.85; }
+    &:nth-child(4) { opacity: 0.70; }
+    &:nth-child(5) { opacity: 0.5; }
+  }
+
+  li {
+    font-size: 1.8em;
+    clear: both;
+    padding: 10px;
+    line-height: 25px;
+
+    list-style: none;
+
+    .chartpos {
+      float: left;
+      rank:before { content: "#"; }
+      rank { display: block; }
+      width: 120px;
+      display: inline-block;
+    }
+
+    .track {
+      display: inline-block;
+      float: left;
+
+      artist {
+        max-width: 700px;
+        text-wrap: none;
+        display: block;
+      }
+
+      artist:before {
+        content: "by ";
+        opacity: 0.3;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      title {
+        max-width: 700px;
+        text-wrap: none;
+        display: block;
+        white-space: nowrap;
+      }
+    }
+
+  }
+
 }

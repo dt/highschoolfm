@@ -4,7 +4,6 @@ case class Top100(id: Top100.Id,
   tracks: Seq[Top100Item]
 )
 case class Top100Item(pos: Int, track: Track.Id)
-case class RankedTrack(year: Int, rank: Int, track: Track)
 
 object Top100 extends MetaModel[Int, Top100]("top100") {
   case class RawEntry(pos: Int, artist: String, title: String)
@@ -16,8 +15,8 @@ object Top100 extends MetaModel[Int, Top100]("top100") {
     db.save(Top100(year, tracks))
   }
 
-  def tracks(chart: Top100): Seq[RankedTrack] = {
+  def tracks(chart: Top100): Seq[Track.WithRank] = {
     val allTracks = Track.db.findAll(chart.tracks.map(_.track)).map(i => i.id -> i).toMap
-    chart.tracks.flatMap(item => allTracks.get(item.track).map(t => RankedTrack(chart.id, item.pos, t)))
+    chart.tracks.flatMap(item => allTracks.get(item.track).map(t => Track.WithRank(chart.id, item.pos, t)))
   }
 }

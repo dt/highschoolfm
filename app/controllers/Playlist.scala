@@ -11,10 +11,10 @@ object Playlist extends Controller {
   def age(age: Int) = born((new DateTime).getYear - age)
   def born(year: Int) = forYear(year+18)
 
-  def shuffler(year: Int)(t: RankedTrack) = {
-    val yearWeight = (4 - (year - t.year)) / 4.0
-    val rank = (100.0 - t.rank) / 100.0
-    scala.util.Random.nextInt(100) * yearWeight * rank * -1
+  def shuffler(year: Int)(t: Track.WithRank) = {
+    val yearWeight = ((4 - (year - t.year)) / 4.0) + 1
+    val rankWeight = math.min((100.0 - t.rank) / 100.0, 0.35)
+    scala.util.Random.nextInt(400) * yearWeight * rankWeight * -1
   }
 
   def forYear(year: Int) = Action { request => Async {

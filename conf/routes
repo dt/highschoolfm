@@ -5,7 +5,7 @@
 # Home page
 GET     /                           controllers.Application.index
 GET     /auth                       controllers.Application.authenticate
-GET     /classof/:year              controllers.Playlist.forYear(year: Int)
+GET     /:year                      controllers.Playlist.forYear(year: Int)
 GET     /born/:year                 controllers.Playlist.born(year: Int)
 GET     /age/:age                   controllers.Playlist.age(age: Int)
 
