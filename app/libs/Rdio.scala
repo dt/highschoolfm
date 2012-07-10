@@ -25,14 +25,26 @@ object Rdio {
 
   case class TrackResult(artist: String, title: String, playCount: Int, rdio: RdioInfo)
 
+  def clean(in: String) = {
+    in
+      .trim
+      .toLowerCase
+      .split("featuring")(0)
+      .split(" feat. ")(0)
+      .split(" feat ")(0)
+      .trim
+  }
+
   def id(rawArtist: String, rawTitle: String): Promise[Option[RdioInfo]] = { //CachedWS(artist + title) {
+
+    val artist = clean(rawArtist)
+    val title = clean(rawTitle)
+
     call("search",  Map(
       "types" -> Seq("Track"),
-      "query" -> Seq(rawArtist + " " + rawTitle),
+      "query" -> Seq(artist + " " + title),
       "extras" -> Seq("playCount")
     )).map { resp =>
-      val artist = rawArtist.toLowerCase.trim
-      val title = rawTitle.toLowerCase.trim
 
       def isOkayAlbum(name: String) = {
         val badStr = List("original broadway cast", "tribute", "covers")
@@ -59,13 +71,13 @@ object Rdio {
           ((track.title startsWith title) || (title startsWith  track.title))
       }
 
-      val bad = List("featuring", "feat ", "feat.", "with ", "&", "and ", "the ", ",", "  ", "  ")
-      def clean(str: String) = bad.fold(str){case (acc, bad) => acc.replaceAll(bad, "")}
+      val replacements = List("with ", "&", "and ", "the ", ",", "  ", "  ")
+      def simplify(str: String) = replacements.fold(str){case (acc, bad) => acc.replaceAll(bad, "")}
       val threshold = 0.2
 
       lazy val goodEnough = results.filter { track =>
-        val (cleanArtist, cleanTitle) = (clean(artist), clean(title))
-        val (trackArtist, trackTitle) = (clean(track.artist), clean(track.title))
+        val (cleanArtist, cleanTitle) = (simplify(artist), simplify(title))
+        val (trackArtist, trackTitle) = (simplify(track.artist), simplify(track.title))
         val avgArtist = (cleanArtist.length + trackArtist.length) / 2
         val avgTitle = (cleanTitle.length + trackTitle.length) / 2
         Strings.distance(trackArtist, cleanArtist) < (avgArtist * threshold) &&
@@ -96,9 +108,9 @@ object Rdio {
   def scanRankedTracks(tracks: Iterator[Track.WithRank]) { scanTracks(tracks.map(_.track)) }
 
   def scanTracks(tracks: Iterator[Track]) {
-    tracks.grouped(10).foreach { group =>
+    tracks.grouped(9).foreach { group =>
       group.foreach { track =>
-        id(track.artist, track.title).map(_.foreach(id => Track.db.save(track.copy(rdio = Some(id)))))
+        Rdio.id(track.artist, track.title).map(_.foreach(id => Track.db.save(track.copy(rdio = Some(id)))))
       }
       Thread.sleep(1010)
     }

@@ -3,3 +3,12 @@ new StaticApplication(new java.io.File("."))
 import models._
 import libs._
 import play.api.libs.json._
+import play.api.Logger
+{
+  val pid = management.ManagementFactory.getRuntimeMXBean().getName().split("@")(0)
+  val file = new java.io.File("PID")
+  val fw = new java.io.FileWriter(file)
+  fw.write(pid.toString)
+  fw.close()
+  file.deleteOnExit()
+}

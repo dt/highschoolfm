@@ -10,9 +10,9 @@ object EchoNest {
   val Key = "WUTDYFSFNUOAICBFJ"
 
   def lookup(artist: String, title: String) = { //CachedWS(artist + title) {
-    WS.url("http://developer.echonest.com/api/v4/song/search").withQueryString(
-      "api_key" -> Key,
+    WS.url("http://developer.echonest.com/api/v4/song/search").withQueryString( "api_key" -> Key,
       "format" -> "json",
+      "bucket" -> "id:rdio-us-streaming",
       "artist" -> artist,
       "title" -> title
     ).get().map { resp =>
