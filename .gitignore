@@ -9,4 +9,7 @@ dist
 .classpath
 .project
 .settings/
-.target/
+.target/highschoolfm.sublime-workspace
+PID
+.target
+dump
