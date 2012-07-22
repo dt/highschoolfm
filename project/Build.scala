@@ -23,7 +23,21 @@ object ApplicationBuild extends Build {
         "-unchecked",
         "-Xfatal-warnings",
         "-Ywarn-value-discard",
-        "-Ywarn-all")
+        "-Ywarn-all"),
+      initialCommands := """
+        import play.core.StaticApplication
+        new StaticApplication(new java.io.File("."))
+        import models._
+        import libs._
+        import play.api.libs.json._
+        import play.api.Logger
+        val pid = management.ManagementFactory.getRuntimeMXBean().getName().split("@")(0)
+        val pidfile = new java.io.File("PID")
+        val pidfilewriter = new java.io.FileWriter(pidfile)
+        pidfilewriter.write(pid.toString)
+        pidfilewriter.close()
+        pidfile.deleteOnExit()
+      """
     )
 
 }
