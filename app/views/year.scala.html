@@ -1,6 +1,8 @@
-@(year: String, playlist: Seq[Track.WithRank], token: String)
+@(year: String, playlist: Seq[ChartItem], token: String)
 
 @main("highschool.fm / " + year) {
+  <script src="http://www.rdio.com/api/api.js?helper=/assets/helper.html&client_id=uEpXmUZL-BYq3G603zjGnQ"></script>
+
   <script type="text/javascript">
     var playbackToken = '@token';
   </script>

@@ -1,7 +1,6 @@
 package controllers
 
 import libs.Rdio
-import play.api.libs.oauth._
 import play.api.mvc._
 
 object Application extends Controller {
@@ -10,11 +9,7 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
-  val RdioOAuth = OAuth(ServiceInfo(
-    "http://api.rdio.com/oauth/request_token",
-    "http://api.rdio.com/oauth/access_token",
-    "https://www.rdio.com/oauth/authorize", Rdio.Keys),
-    false)
+  /*
 
   def sessionTokenPair(implicit request: RequestHeader): Option[RequestToken] = {
     for {
@@ -23,10 +18,10 @@ object Application extends Controller {
     } yield {
       RequestToken(token, secret)
     }
-  }
+  } */
 
   def authenticate = Action { request =>
-    request.queryString.get("oauth_verifier").flatMap(_.headOption).map { verifier =>
+  /*  request.queryString.get("oauth_verifier").flatMap(_.headOption).map { verifier =>
       val tokenPair = sessionTokenPair(request).get
       // We got the verifier; now get the access token, store it and back to index
       RdioOAuth.retrieveAccessToken(tokenPair, verifier) match {
@@ -44,5 +39,6 @@ object Application extends Controller {
         }
         case Left(e) => throw e
       })
+  */ throw new UnsupportedOperationException("meh")
   }
 }

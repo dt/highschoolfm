@@ -1,27 +1,43 @@
 package libs
 
-import models.{RdioInfo, Track}
-import play.api.libs.concurrent.Promise
+import models._
 import play.api.libs.json._
 import play.api.libs.oauth._
 import play.api.libs.ws.WS
 import play.api.Logger
+import play.api.Play
 import play.api.mvc.RequestHeader
 
-object Rdio {
-  val Keys = ConsumerKey("sehsdk98rjaeqqy6rjhqar6t", "VGYtUF8cSz")
-  val Tokenless = RequestToken("", "")
-  val Signer = OAuthCalculator(Keys, Tokenless)
+import scala.concurrent.{ExecutionContext, Future}
 
-  def call(method: String, params: Map[String, Seq[String]] = Map.empty) = {
-    WS.url("http://api.rdio.com/1/")
-      .sign(Signer)
-      .post(Map("method" -> Seq(method)) ++ params)
+object Rdio {
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import play.api.Play
+  import play.api.Play.current
+
+  def cfg(k: String) = Play.application.configuration.getString(k).getOrElse(throw new NoSuchElementException(k))
+
+  val clientToken: Future[String] = WS.url("https://www.rdio.com/oauth2/token")
+    .post(Map(
+      "grant_type"    -> Seq("client_credentials"),
+      "client_id"     -> Seq(cfg("rdio.key")),
+      "client_secret" -> Seq(cfg("rdio.secret"))
+      )
+    ).map { token =>
+      Logger.info("Rdio Client Access Token: " + token.body)
+      (token.json \ "access_token").as[String]
+    }
+
+  def call(method: String, params: Map[String, Seq[String]] = Map.empty)(implicit ctx: ExecutionContext) = {
+    clientToken.flatMap(token =>
+      WS.url("https://www.rdio.com/api/1/")
+        .post(Map("method" -> Seq(method), "access_token" -> Seq(token)) ++ params)
+    )
   }
 
-  def playbackToken(domain: String) =
+  def playbackToken(domain: String)(implicit ctx: ExecutionContext) =
     call("getPlaybackToken", Map("domain" -> Seq(domain)))
-    .map(i => (i.json \ "result").asOpt[String])
+      .map(i => (i.json \ "result").asOpt[String])
 
   case class TrackResult(artist: String, title: String, playCount: Int, rdio: RdioInfo)
 
@@ -35,7 +51,7 @@ object Rdio {
       .trim
   }
 
-  def id(rawArtist: String, rawTitle: String): Promise[Option[RdioInfo]] = { //CachedWS(artist + title) {
+  def id(rawArtist: String, rawTitle: String)(implicit ctx: ExecutionContext): Future[Option[RdioInfo]] = { //CachedWS(artist + title) {
 
     val artist = clean(rawArtist)
     val title = clean(rawTitle)
@@ -105,12 +121,15 @@ object Rdio {
     }
   }
 
-  def scanRankedTracks(tracks: Iterator[Track.WithRank]) { scanTracks(tracks.map(_.track)) }
+  def scanRankedTracks(tracks: Iterator[ChartItem])(implicit ctx: ExecutionContext) {
+    scanTracks(tracks.map(_.track))
+  }
 
-  def scanTracks(tracks: Iterator[Track]) {
+  def scanTracks(tracks: Iterator[Track])(implicit ctx: ExecutionContext) {
     tracks.grouped(9).foreach { group =>
       group.foreach { track =>
-        Rdio.id(track.artist, track.title).map(_.foreach(id => Track.db.save(track.copy(rdio = Some(id)))))
+        Rdio.id(track.artist, track.title)
+          .map(_.foreach(id => track.rdio = Some(id)))
       }
       Thread.sleep(1010)
     }

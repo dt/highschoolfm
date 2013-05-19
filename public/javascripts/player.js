@@ -5,12 +5,12 @@ var currentTrack = false;
 
 function skipTo(id) {
   ignoreStopped = true;
-  $('#api').rdio().play(id);
+  R.player.play({source: id});
 }
 
 function playNext() {
   var next = $('#queue .enqueued').first().attr('id');
-  $('#api').rdio().play(next);
+  R.player.play({source: next});
 }
 
 function nowPlaying(id, art, artist, title) {
@@ -26,38 +26,40 @@ function nowPlaying(id, art, artist, title) {
 }
 
 $(document).ready(function() {
-  $('#api').bind('ready.rdio', function() {
+  R.ready(function() {
     $('#queue .enqueued').each(function() {
       $(this).click(function() { skipTo($(this).attr('id')); });
     });
+
+    R.player.on('change:playingTrack', function(newTrack) {
+      var playingTrack = newTrack.attributes
+      console.log("new playing track", playingTrack)
+      if (playingTrack && (currentTrack != playingTrack.key)) {
+        currentTrack = playingTrack.key;
+        nowPlaying(playingTrack.key, playingTrack.icon, playingTrack.artist, playingTrack.name);
+      }
+    });
+
+    R.player.on('change:playState', function(playState) {
+      console.log("new playing state", playState)
+
+      if (playState == 2 && currentTrack) {
+        if (ignoreStopped) {
+        } else {
+          playNext();
+        }
+        currentTrack = false;
+        ignoreStopped = false;
+      } else if (playState == 0) { // paused
+        $('#artBox').attr('class', 'paused');
+      } else {
+        $('#artBox').attr('class', 'playing');
+      }
+    });
+
+    $('#play').click(function() { R.player.play(); });
+    $('#pause').click(function() { R.player.pause(); });
+
     playNext();
   });
-
-  $('#api').bind('playingTrackChanged.rdio', function(e, playingTrack, sourcePosition) {
-    if (playingTrack && (currentTrack != playingTrack.key)) {
-      currentTrack = playingTrack.key;
-      nowPlaying(playingTrack.key, playingTrack.icon, playingTrack.artist, playingTrack.name);
-    }
-  });
-
-  $('#api').bind('playStateChanged.rdio', function(e, playState) {
-    if (playState == 2 && currentTrack) {
-      if (ignoreStopped) {
-      } else {
-        playNext();
-      }
-      currentTrack = false;
-      ignoreStopped = false;
-    } else if (playState == 0) { // paused
-      $('#artBox').attr('class', 'paused');
-    } else {
-      $('#artBox').attr('class', 'playing');
-    }
-  });
-
-  // this is a valid playback token for localhost.
-  // but you should go get your own for your own domain.
-  $('#api').rdio(playbackToken);
-  $('#play').click(function() { $('#api').rdio().play(); });
-  $('#pause').click(function() { $('#api').rdio().pause(); });
 });
