@@ -1,6 +1,9 @@
 package controllers
 
 import libs.Rdio
+import play.api.libs.iteratee._
+import play.api.libs.concurrent._
+import play.api.libs.concurrent.Execution.Implicits._
 import models._
 import org.joda.time.DateTime
 import play.api.libs.concurrent.Promise
@@ -32,5 +35,17 @@ object Playlist extends Controller {
   def load(year: Int) = Action {
     val count = Top100.loadYear(year)
     Ok("loaded %s".format(count))
+  }
+
+  def loadAll() = Action {
+    def loadYear(year: Int): String = {
+      val c = Top100.loadYear(year)
+      "%s:\t%s\n".format(year, c)
+    }
+
+    val chunks: Enumerator[String] = Enumerator.enumerate(1960 to 2011)
+      .through(Enumeratee.map(loadYear))
+      .andThen(Enumerator.eof[String])
+    Ok.stream(chunks)
   }
 }

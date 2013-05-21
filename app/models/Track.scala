@@ -14,6 +14,7 @@ case class RawChartEntry(rank: Int, artist: String, title: String)
 
 import collection.JavaConversions._
 import java.util.concurrent.ConcurrentHashMap
+import java.io.File
 
 object ModelJson {
   implicit val RdioInfoWrites = Json.writes[RdioInfo]
@@ -51,10 +52,12 @@ object Top100 {
 
   def loadYear(year: Int) = {
     import ModelJson._
-    val str = scala.io.Source.fromFile("charts/%s.json".format(year)).mkString
+    val str = scala.io.Source.fromFile(new File("charts/%s.json".format(year)), "UTF8")
+      .mkString
+
     val parsed = Json.parse(str)
     val everything = Json.fromJson[Seq[ChartItem]](parsed).get
-    (for { (y, items) <- everything.groupBy(_.year) } yield {
+    ( for { (y, items) <- everything.groupBy(_.year) } yield {
       val existing = Top100.charts.get(y).getOrElse(Nil)
       val merged = (existing ++ items).toSeq.sortBy(-_.rank)
         .foldLeft(List.empty[ChartItem])((acc, i) => acc match {
