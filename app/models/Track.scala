@@ -41,7 +41,7 @@ object Track {
 object Top100 {
   val charts: concurrent.Map[Int, Seq[ChartItem]] = Track.empty
 
-  def load() = {
+  def loadAll() = {
     import ModelJson._
     val str = scala.io.Source.fromFile("charts.json").mkString
     val parsed = Json.parse(str)
@@ -49,7 +49,24 @@ object Top100 {
     for { (y, items) <- everything.groupBy(_.year) } Top100.charts.put(y, items)
   }
 
-  load()
+  def loadYear(year: Int) = {
+    import ModelJson._
+    val str = scala.io.Source.fromFile("charts/%s.json".format(year)).mkString
+    val parsed = Json.parse(str)
+    val everything = Json.fromJson[Seq[ChartItem]](parsed).get
+    (for { (y, items) <- everything.groupBy(_.year) } yield {
+      val existing = Top100.charts.get(y).getOrElse(Nil)
+      val merged = (existing ++ items).toSeq.sortBy(-_.rank)
+        .foldLeft(List.empty[ChartItem])((acc, i) => acc match {
+          case head :: tail if head.rank == i.rank => i :: tail
+          case ok => i :: ok
+          })
+
+      Top100.charts.put(y, merged)
+      merged.size - existing.size
+    }).sum
+  }
+
 
   def dump() = {
     //val out = new PrintWriter("charts.json")
@@ -59,7 +76,7 @@ object Top100 {
   }
 
   def forYear(year: Int) = charts.get(year)
-  def forYears(years: Seq[Int]) = years.map(charts.get)
+  def forYears(years: Seq[Int]) = years.map(forYear)
 
   def importYear(year: Int, items: Traversable[RawChartEntry]) = {
     val tracks = items.map(t => ChartItem(year, t.rank, Track.findOrAdd(t.artist, t.title)))

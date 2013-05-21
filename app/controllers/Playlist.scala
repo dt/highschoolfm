@@ -28,4 +28,9 @@ object Playlist extends Controller {
         Ok(views.html.year(year.toString, tracks, token))
     }.getOrElse(InternalServerError("No playback token from Rdio?!"))}
   }}
+
+  def load(year: Int) = Action {
+    val count = Top100.loadYear(year)
+    Ok("loaded %s".format(count))
+  }
 }
